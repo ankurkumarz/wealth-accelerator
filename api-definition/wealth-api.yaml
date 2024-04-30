@@ -1,0 +1,3010 @@
+openapi: 3.0.0
+servers:
+  - description: WM API Mock Server
+    url: https://virtserver.swaggerhub.com/ANKURKUMAR78/WealthManagement/1.0.0
+info:
+  description: Wealth Management API
+  version: "1.0.0"
+  title: Wealth Management API
+  contact:
+    email: support@wmx.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+ - name: authorization
+   description: authorization, and entitlement operations
+ - name: leadgen-firm
+   description: all operations for lead generation firm
+ - name: wealth-firm
+   description: all operations for wealth management firm
+ - name: advisor
+   description: all operations for firm's advisors
+ - name: prospect
+   description: all operations for wealth management prospects
+ - name: client
+   description: all operations for wealth management clients   
+ - name: account
+   description: all operations for wealth management client's account
+ - name: content
+   description: all apis to fetch content using headless content management approach
+ - name: communication
+   description: all apis related to communications/notifications
+ - name: document
+ - name: search
+ - name: finplan
+paths:
+  '/api/v1/users/{userId}/entitlements':
+    get:
+      tags:
+        - authorization
+      summary: fetches a wealth management firm's advisor's entitlements
+      operationId: getEntitlements
+      x-swagger-router-controller: EntitlementController
+      parameters:
+        - name: userId
+          in: path
+          description: ID of Advisor or Client
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: list of entitlements received
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Entitlement'
+        '400':
+          description: Invalid Firm or Advisor ID supplied
+        '404':
+          description: Firm or advisor not found
+  '/api/v1/leadgenfirm':
+    post:
+      tags:
+        - leadgen-firm
+      summary: "Add a new lead generation firm"
+      description: "Add a new lead generation firm"
+      operationId: addLeadGenFirm
+      requestBody:
+        description: Create a new lead generation firm into the system
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadGenFirm"
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadGenFirm'          
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/LeadGenFirm'
+        '405':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+  '/api/v1/leadgenfirms':
+    get:
+      tags:
+        -  leadgen-firm
+      summary: fetches a lead gen management firm's offered services
+      operationId: getLeadGenerationFirms
+      parameters:
+        - in: query
+          name: page
+          description: Zero-based page index (0..N)
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: size
+          description: The size of the page to be returned
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 50
+        - in: query
+          name: sort
+          description: Sorting criteria in the format- property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: list of lead gen firms
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                  totalElements:
+                    type: integer
+                    description: total result size returned
+                  size:
+                    type: integer
+                    description: size of the page
+                  last:
+                    type: string
+                    description: indicates it is last page
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LeadGenFirm'
+                  pageable:
+                    $ref: '#/components/schemas/Pageable'
+                  sort:
+                    $ref: '#/components/schemas/Sort'
+        '400':
+          description: Invalid Firm ID supplied
+        '404':
+          description: Firm not found          
+  '/api/v1/leadgenfirms/{firmId}':
+    get:
+      tags:
+        - leadgen-firm
+      summary: Find a lead generation firm by id
+      description: Find an existing lead generation firm by id
+      operationId: findLeadGenFirmById
+      parameters:
+        - name: firmId
+          in: path
+          description: Return a single lead generation firm
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeadGenFirm'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/LeadGenFirm'                  
+        '401':
+          description: Unauthorized
+        '400':
+          description: Invalid firm id
+        '404':
+          description: Firm not found
+  '/api/v1/leadgenfirms/search':
+    get:
+      tags:
+        -  leadgen-firm
+      summary: search based on lead management firm/firm's information
+      operationId: findLeadGenFirmByParam
+      description: |
+        By passing in the appropriate options, you can search for
+        available lead management firms in the system
+      parameters:
+        - in: query
+          name: searchParam
+          description: pass an optional search string for looking up org search
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: skip
+          description: number of records to skip for pagination
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 50
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LeadGenFirm'
+        '400':
+          description: bad input parameter          
+  '/api/v1/firm/':
+    post:
+      tags:
+        -  wealth-firm
+      summary: creates a new firm with basic information
+      description: creates a new firm with basic information, use separate endpoints for updating the remaining information
+      operationId: addFirm
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Firm'
+        '405':
+          description: Invalid input
+      requestBody:
+        description: Create a new wealth management firm
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Firm'
+  '/api/v1/firms':
+    get:
+      tags:
+        -  wealth-firm
+      summary: fetches a wealth management firm's offered services
+      operationId: getFirms
+      parameters:
+        - in: query
+          name: page
+          description: Zero-based page index (0..N)
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: size
+          description: The size of the page to be returned
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 50
+        - in: query
+          name: sort
+          description: Sorting criteria in the format- property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: firm's list of services retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                  totalElements:
+                    type: integer
+                    description: total result size returned
+                  size:
+                    type: integer
+                    description: size of the page
+                  last:
+                    type: string
+                    description: indicates it is last page
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Firm'
+                  pageable:
+                    $ref: '#/components/schemas/Pageable'
+                  sort:
+                    $ref: '#/components/schemas/Sort'
+        '400':
+          description: Invalid Firm ID supplied
+        '404':
+          description: Firm not found
+  '/api/v1/firms/{firmId}':
+    get:
+      tags:
+        -  wealth-firm
+      summary: fetches a wealth management firm's basic information
+      operationId: getById
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm to return
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Firm'
+        '400':
+          description: Invalid Firm ID supplied
+        '404':
+          description: Firm not found
+    post:
+      tags:
+        -  wealth-firm
+      summary: updates the wealth management firm's basic information
+      description: Updates a WM firm or oganization to the system
+      operationId: updateFirmBasicInfo
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: firm basic information updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Firm'
+        '400':
+          description: 'invalid input, object invalid'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Firm'
+        description: WM firm or firm to update
+  '/api/v1/firms/{firmId}/services':
+    get:
+      tags:
+        -  wealth-firm
+      summary: fetches a wealth management firm's offered services
+      operationId: getServicesByfirmId
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: firm's list of services retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FinancialService'
+        '400':
+          description: Invalid Firm ID supplied
+        '404':
+          description: Firm not found
+    post:
+      tags:
+        -  wealth-firm
+      summary: updates the wealth management firm's services
+      description: Updates a WM firm offered services / create if not exists
+      operationId: updateFirmServices
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: firm information updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FinancialService'
+        '400':
+          description: 'invalid input, object invalid'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/FinancialService'
+        description: WM firm or firm's services to be updated
+  '/api/v1/firms/{firmId}/specializations':
+    get:
+      tags:
+        -  wealth-firm
+      summary: fetches a wealth management firm's specializations
+      operationId: getSpecializationsByfirmId
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Specialization'
+        '400':
+          description: Invalid Firm ID supplied
+        '404':
+          description: Firm not found
+    post:
+      tags:
+        -  wealth-firm
+      summary: updates/creates the wealth management firm's specializations
+      description: Updates a WM firm or oganization to the system or create if not exists
+      operationId: updateFirmSpecializations
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: firm information updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Specialization'
+        '400':
+          description: 'invalid input, object invalid'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Specialization'
+        description: WM firm or firm specialization list          
+  '/api/v1/firms/{firmId}/partners':
+    get:
+      tags:
+        -  wealth-firm
+      summary: fetches a wealth management firm's partners
+      operationId: getPartnersByfirmId
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Partner'
+        '400':
+          description: Invalid Firm ID supplied
+        '404':
+          description: Firm not found
+    post:
+      tags:
+        -  wealth-firm
+      summary: updates/creates the wealth management firm's partner information
+      description: Updates a WM firm or oganization partner's information to the system or create if not exists
+      operationId: updateFirmPartners
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: firm information updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Partner'
+        '400':
+          description: 'invalid input, object invalid'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Partner'
+        description: WM firm or firm partners
+  '/api/v1/firms/search':
+    get:
+      tags:
+        -  wealth-firm
+      summary: search based on wealth management firm/firm's information
+      operationId: findByParam
+      description: |
+        By passing in the appropriate options, you can search for
+        available wealth management firms in the system
+      parameters:
+        - in: query
+          name: searchParam
+          description: pass an optional search string for looking up org search
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: skip
+          description: number of records to skip for pagination
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 50
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Firm'
+        '400':
+          description: bad input parameter
+  '/api/v1/firms/{firmId}/advisor':
+    post:
+      tags:
+        - advisor
+      summary: creates a new firm advisor with basic information
+      description: creates a new firm's advisor
+      operationId: addAdvisor
+      x-swagger-router-controller: AdvisorController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Advisor'
+        '405':
+          description: Invalid input
+      requestBody:
+        description: Create a new wealth management firm's advisor
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Advisor'
+  '/api/v1/firms/{firmId}/advisors/{advisorId}':
+    get:
+      tags:
+        - advisor
+      summary: fetches an Advisor information
+      operationId: getByAdvisorId
+      x-swagger-router-controller: AdvisorController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of wealth management firm's advisor
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Advisor'
+        '400':
+          description: Invalid Advisor ID supplied
+        '404':
+          description: Advisor not found
+  '/api/v1/firms/{firmId}/advisors':
+    get:
+      tags:
+        - advisor
+      summary: fetches a wealth management firm's advisors
+      operationId: getAdvisors
+      x-swagger-router-controller: AdvisorController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          description: Zero-based page index (0..N)
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: size
+          description: The size of the page to be returned
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 50
+        - in: query
+          name: sort
+          description: Sorting criteria in the format- property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: firm's list of services retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                  totalElements:
+                    type: integer
+                    description: total result size returned
+                  size:
+                    type: integer
+                    description: size of the page
+                  last:
+                    type: string
+                    description: indicates it is last page
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Advisor'
+                  pageable:
+                    $ref: '#/components/schemas/Pageable'
+                  sort:
+                    $ref: '#/components/schemas/Sort'
+        '400':
+          description: Invalid Firm ID supplied
+        '404':
+          description: Firm not found
+  '/api/v1/firms/{firmId}/advisors/{advisorId}/services':
+    get:
+      tags:
+        - advisor
+      summary: fetches a wealth management firm advisor's offered services
+      operationId: getServicesByAdvisor
+      x-swagger-router-controller: AdvisorController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of Advisor
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: advisor's list of services retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FinancialService'
+        '400':
+          description: Invalid Firm or Advisor ID supplied
+        '404':
+          description: Firm or Advisor not found
+    post:
+      tags:
+        - advisor
+      summary: updates the wealth management firm advisor's services
+      description: Updates a WM firm offered services / create if not exists
+      operationId: updateAdvisorServices
+      x-swagger-router-controller: AdvisorController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of Advisor
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: advisor information updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FinancialService'
+        '400':
+          description: 'invalid input, object invalid'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/FinancialService'
+        description: WM firm or firm's services to be updated
+  '/api/v1/firms/{firmId}/advisors/{advisorId}/specializations':
+    get:
+      tags:
+        - advisor
+      summary: fetches a wealth management firm advisor's specializations
+      operationId: getSpecializationsByAdvisor
+      x-swagger-router-controller: AdvisorController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of wealth management firm Advisor
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Specialization'
+        '400':
+          description: Invalid Firm or Advisor ID supplied
+        '404':
+          description: Firm or advisor not found
+    post:
+      tags:
+        - advisor
+      summary: updates/creates the wealth management firm advisor's specializations
+      description: Updates a WM firm or oganization to the system or create if not exists
+      operationId: updateAdvisorSpecializations
+      x-swagger-router-controller: AdvisorController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of wealth management firm's Advisor
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: advisor information updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Specialization'
+        '400':
+          description: 'invalid input, object invalid'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Specialization'
+        description: WM firm or firm specialization list
+  '/api/v1/firms/{firmId}/advisors/{advisorId}/feedback':
+    get:
+      tags:
+        - advisor
+      summary: fetches a wealth management firm advisor's feedback/reviews
+      operationId: getFeedbackReviewForAdvisor
+      x-swagger-router-controller: AdvisorController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of wealth management firm Advisor
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Specialization'
+        '400':
+          description: Invalid Firm or Advisor ID supplied
+        '404':
+          description: Firm or advisor not found
+    post:
+      tags:
+        - advisor
+      summary: updates/creates the wealth management firm advisor's feedback/review
+      description: updates/creates the wealth management firm advisor's feedback/review
+      operationId: updateAdvisorFeedback
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of wealth management firm's Advisor
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: advisor information updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FeedbackReview'
+        '400':
+          description: 'invalid input, object invalid'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/FeedbackReview'
+        description: WM firm or firm feedback/review list
+  '/api/v1/firms/{firmId}/advisors/{advisorId}/reps':
+    get:
+      tags:
+        - advisor
+      summary: fetches a wealth management firm's advisors's reps
+      operationId: getAdvisorReps
+      x-swagger-router-controller: AdvisorController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of Advisor
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          description: Zero-based page index (0..N)
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: size
+          description: The size of the page to be returned
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 50
+        - in: query
+          name: sort
+          description: Sorting criteria in the format- property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: firm's list of services retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                  totalElements:
+                    type: integer
+                    description: total result size returned
+                  size:
+                    type: integer
+                    description: size of the page
+                  last:
+                    type: string
+                    description: indicates it is last page
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Representative'
+                  pageable:
+                    $ref: '#/components/schemas/Pageable'
+                  sort:
+                    $ref: '#/components/schemas/Sort'            
+        '400':
+          description: Invalid Firm ID supplied
+        '404':
+          description: Firm not found
+  '/api/v1/firms/{firmId}/advisors/{advisorId}/organization':
+    get:
+      tags:
+        - advisor
+      summary: fetches a wealth management firm's advisors's org hierarchy (flattened for simplicity)
+      operationId: getAdvisorOrgHierarchy
+      x-swagger-router-controller: AdvisorController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of Advisor
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: organization hierarchy associated with advisor
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Organization'
+        '400':
+          description: Invalid Firm ID supplied
+        '404':
+          description: Firm not found          
+  '/api/v1/firms/{firmId}/advisors/{advisorId}/insights':
+    get:
+      tags:
+        - advisor
+      summary: fetches a wealth management firm's advisors's clients
+      operationId: getAdvisorInsights
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of Advisor
+          required: true
+          schema:
+            type: string
+        - name: history
+          in: query
+          description: flag to include history or not
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: list of metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metrics:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Metric'
+                  history:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Barometer'
+  '/api/v1/firms/{firmId}/advisors/{advisorId}/clients':
+    get:
+      tags:
+        - advisor
+      summary: fetches a wealth management firm's advisors's clients
+      operationId: getClientsByAdvisor
+      x-swagger-router-controller: AdvisorController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of Advisor
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          description: Zero-based page index (0..N)
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: size
+          description: The size of the page to be returned
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 50
+        - in: query
+          name: sort
+          description: Sorting criteria in the format- property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+          schema:
+            type: array
+            items:
+              type: string            
+      responses:
+        '200':
+          description: list of clients
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                  totalElements:
+                    type: integer
+                    description: total result size returned
+                  size:
+                    type: integer
+                    description: size of the page
+                  last:
+                    type: string
+                    description: indicates it is last page
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Client'
+                  pageable:
+                    $ref: '#/components/schemas/Pageable'
+                  sort:
+                    $ref: '#/components/schemas/Sort'
+        '400':
+          description: Invalid Firm ID supplied
+        '404':
+          description: Firm not found
+  '/api/v1/firms/{firmId}/advisors/{advisorId}/prospects':
+    get:
+      tags:
+        - prospect
+      summary: fetches a wealth management firm's advisors's prospects
+      operationId: getProspectsByAdvisor
+      x-swagger-router-controller: ProspectController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of Advisor
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          description: Zero-based page index (0..N)
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: size
+          description: The size of the page to be returned
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 50
+        - in: query
+          name: sort
+          description: Sorting criteria in the format- property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+          schema:
+            type: array
+            items:
+              type: string            
+      responses:
+        '200':
+          description: list of prospects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                  totalElements:
+                    type: integer
+                    description: total result size returned
+                  size:
+                    type: integer
+                    description: size of the page
+                  last:
+                    type: string
+                    description: indicates it is last page
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Prospect'
+                  pageable:
+                    $ref: '#/components/schemas/Pageable'
+                  sort:
+                    $ref: '#/components/schemas/Sort'
+        '400':
+          description: Invalid Firm ID supplied
+        '404':
+          description: Firm not found          
+  '/api/v1/firms/{firmId}/advisors/{advisorId}/prospect':
+    post:
+      tags:
+        - prospect
+      summary: creates a new firm prospect with basic information
+      description: creates a new firm's prospect
+      operationId: addProspect
+      x-swagger-router-controller: ProspectController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of Advisor
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prospect'
+        '405':
+          description: Invalid input
+      requestBody:
+        description: Create a new wealth management firm's advisor
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Advisor'
+  '/api/v1/firms/{firmId}/advisors/{advisorId}/prospects/{prospectId}':
+    get:
+      tags:
+        - prospect
+      summary: fetches an Advisor's list of Prospects
+      operationId: getProspectByAdvisor
+      x-swagger-router-controller: ProspectController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of wealth management firm's advisor
+          required: true
+          schema:
+            type: string
+        - name: prospectId
+          in: path
+          description: ID of wealth management firm's advisor
+          required: true
+          schema:
+            type: string            
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prospect'
+        '400':
+          description: Invalid Advisor or Prospect ID supplied
+        '404':
+          description: Advisor or Prospect not found
+    delete:
+      tags:
+        - prospect
+      summary: delete a prospect
+      operationId: removeProspect
+      x-swagger-router-controller: ProspectController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of wealth management firm's advisor
+          required: true
+          schema:
+            type: string      
+        - name: prospectId
+          in: path
+          description: ID of Prospect
+          required: true
+          schema:
+            type: string            
+      responses:
+        '204':
+          description: Prospect Deleted
+        '400':
+          description: Invalid Prospect ID supplied
+  '/api/v1/firms/{firmId}/advisors/{advisorId}/client':
+    post:
+      tags:
+        - client
+      summary: creates a new firm prospect with basic information
+      description: creates a new firm's client
+      operationId: addClient
+      x-swagger-router-controller: ClientController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of Advisor
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '405':
+          description: Invalid input
+      requestBody:
+        description: Create a new wealth management firm's client
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Advisor'
+  '/api/v1/firms/{firmId}/advisors/{advisorId}/clients/{clientId}':
+    get:
+      tags:
+        - client
+      summary: fetches an Advisor's list of Clients
+      operationId: getClientByAdvisor
+      x-swagger-router-controller: ClientController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of wealth management firm's advisor
+          required: true
+          schema:
+            type: string
+        - name: clientId
+          in: path
+          description: ID of wealth management firm's client
+          required: true
+          schema:
+            type: string            
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '400':
+          description: Invalid Advisor or Client ID supplied
+        '404':
+          description: Advisor or Client not found
+    delete:
+      tags:
+        - client
+      summary: delete a client
+      operationId: removeClient
+      x-swagger-router-controller: ClientController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: ID of wealth management firm's advisor
+          required: true
+          schema:
+            type: string      
+        - name: clientId
+          in: path
+          description: ID of Client
+          required: true
+          schema:
+            type: string            
+      responses:
+        '204':
+          description: Client Deleted
+        '400':
+          description: Invalid Client ID supplied
+  '/api/v1/firms/{firmId}/clients/{clientId}/portfolio':
+    get:
+      tags:
+        - client
+      summary: fetches the summary of client's portfolio
+      operationId: getInvestmentPortfolio
+      x-swagger-router-controller: ClientController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: clientId
+          in: path
+          description: ID of wealth management firm's client
+          required: true
+          schema:
+            type: string            
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvestmentPortfolio'
+        '400':
+          description: Invalid Advisor or Client ID supplied
+        '404':
+          description: Advisor or Client not found
+  '/api/v1/firms/{firmId}/clients/{clientId}/myadvisor':
+    get:
+      tags:
+        - client
+      summary: fetches the advisor info for a client
+      operationId: getAdvisorByClient
+      x-swagger-router-controller: ClientController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: clientId
+          in: path
+          description: ID of wealth management firm's client
+          required: true
+          schema:
+            type: string            
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                properties:
+                  advisor:
+                    $ref: '#/components/schemas/Advisor'
+        '400':
+          description: Invalid Advisor or Client ID supplied
+        '404':
+          description: Advisor or Client not found
+  '/api/v1/clients/{clientId}/accounts':
+    get:
+      tags:
+        - account
+      summary: fetches a client's accounts
+      operationId: getAccounts
+      x-swagger-router-controller: AccountController
+      parameters:
+        - name: clientId
+          in: path
+          description: ID of wealth management firm's client
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          description: Zero-based page index (0..N)
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: size
+          description: The size of the page to be returned
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 50
+        - in: query
+          name: sort
+          description: Sorting criteria in the format- property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                  totalElements:
+                    type: integer
+                    description: total result size returned
+                  size:
+                      type: integer
+                      description: size of the page
+                  last:
+                    type: string
+                    description: indicates it is last page
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Account'
+                  pageable:
+                    $ref: '#/components/schemas/Pageable'
+                  sort:
+                    $ref: '#/components/schemas/Sort'            
+        '400':
+          description: Invalid Client ID supplied
+        '404':
+          description: Client not found
+  '/api/v1/clients/{clientId}/holdings':
+    get:
+      tags:
+        - account
+      summary: fetches a client's holdings
+      operationId: getHoldings
+      x-swagger-router-controller: AccountController
+      parameters:
+        - name: clientId
+          in: path
+          description: ID of wealth management firm's client
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          description: Zero-based page index (0..N)
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: size
+          description: The size of the page to be returned
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 50
+        - in: query
+          name: sort
+          description: Sorting criteria in the format- property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                  totalElements:
+                    type: integer
+                    description: total result size returned
+                  size:
+                      type: integer
+                      description: size of the page
+                  last:
+                    type: string
+                    description: indicates it is last page
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Holding'
+                  pageable:
+                    $ref: '#/components/schemas/Pageable'
+                  sort:
+                    $ref: '#/components/schemas/Sort'            
+        '400':
+          description: Invalid Client ID supplied
+        '404':
+          description: Client not found          
+  '/api/v1/clients/{clientId}/accounts/{accountId}':
+    get:
+      tags:
+        - account
+      summary: fetches an account details
+      operationId: getAccount
+      x-swagger-router-controller: AccountController
+      parameters:
+        - name: clientId
+          in: path
+          description: ID of wealth management firm's client
+          required: true
+          schema:
+            type: string
+        - name: accountId
+          in: path
+          description: Account ID
+          required: true
+          schema:
+            type: string            
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        '400':
+          description: Invalid Advisor or Client ID or Account ID supplied
+        '404':
+          description: Advisor or Client or Account not found
+  '/api/v1/clients/{clientId}/accounts/{accountId}/transactions':
+    get:
+      tags:
+        - account
+      summary: fetches an account's transactions
+      operationId: getTransactions
+      x-swagger-router-controller: AccountController
+      parameters:
+        - name: clientId
+          in: path
+          description: ID of wealth management firm's client
+          required: true
+          schema:
+            type: string
+        - name: accountId
+          in: path
+          description: Account ID
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          description: Zero-based page index (0..N)
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: size
+          description: The size of the page to be returned
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 50
+        - in: query
+          name: sort
+          description: Sorting criteria in the format- property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+          schema:
+            type: array
+            items:
+              type: string            
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                  totalElements:
+                    type: integer
+                    description: total result size returned
+                  size:
+                      type: integer
+                      description: size of the page
+                  last:
+                    type: string
+                    description: indicates it is last page
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+                  pageable:
+                    $ref: '#/components/schemas/Pageable'
+                  sort:
+                    $ref: '#/components/schemas/Sort'            
+        '400':
+          description: Invalid Client ID supplied
+        '404':
+          description: Client not found
+  '/api/v1/clients/{clientId}/accounts/{accountId}/transaction':
+    post:
+      tags:
+        - account
+      summary: creates a new transaction
+      operationId: addTransaction
+      x-swagger-router-controller: AccountController
+      parameters:
+        - name: clientId
+          in: path
+          description: ID of wealth management firm's client
+          required: true
+          schema:
+            type: string
+        - name: accountId
+          in: path
+          description: Account ID
+          required: true
+          schema:
+            type: string            
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '405':
+          description: Invalid input
+      requestBody:
+        description: Create a new transaction for the account
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+  '/api/v1/clients/{clientId}/accounts/{accountId}/statements':
+    get:
+      tags:
+        - account
+      summary: fetches a client's account statements
+      operationId: getAccountStatements
+      x-swagger-router-controller: AccountController
+      parameters:
+        - name: clientId
+          in: path
+          description: ID of wealth management firm's client
+          required: true
+          schema:
+            type: string
+        - name: accountId
+          in: path
+          description: Account identifier
+          required: true
+          schema:
+            type: string            
+        - in: query
+          name: page
+          description: Zero-based page index (0..N)
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: size
+          description: The size of the page to be returned
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 50
+        - in: query
+          name: sort
+          description: Sorting criteria in the format- property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                  totalElements:
+                    type: integer
+                    description: total result size returned
+                  size:
+                      type: integer
+                      description: size of the page
+                  last:
+                    type: string
+                    description: indicates it is last page
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Statement'
+                  pageable:
+                    $ref: '#/components/schemas/Pageable'
+                  sort:
+                    $ref: '#/components/schemas/Sort'            
+        '400':
+          description: Invalid Client ID supplied
+        '404':
+          description: Client not found
+  '/api/v1/clients/{clientId}/accounts/{accountId}/statements/{statementId}':
+    get:
+      tags:
+        - account
+      summary: fetches a statement
+      operationId: getStatement
+      x-swagger-router-controller: AccountController
+      parameters:
+        - name: clientId
+          in: path
+          description: ID of wealth management firm's client
+          required: true
+          schema:
+            type: string
+        - name: accountId
+          in: path
+          description: Account ID
+          required: true
+          schema:
+            type: string 
+        - name: statementId
+          in: path
+          description: Statement Identifier
+          required: true
+          schema:
+            type: string             
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Statement'
+        '400':
+          description: Invalid Advisor or Client ID or Account ID supplied
+        '404':
+          description: Advisor or Client or Account not found          
+  '/api/v1/firms/{firmId}/content/categories/{categoryId}':
+    get:
+      tags:
+        - content
+      summary: fetches a page's content
+      operationId: getContent
+      x-swagger-router-controller: ContentController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: categoryId
+          in: path
+          description: Content Category ID
+          required: true
+          example: 'Page, Marketing'
+          schema:
+            type: string
+        - in: query
+          name: page
+          description: Zero-based page index (0..N)
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: size
+          description: The size of the page to be returned
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 50
+        - in: query
+          name: sort
+          description: Sorting criteria in the format- property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                  totalElements:
+                    type: integer
+                    description: total result size returned
+                  size:
+                      type: integer
+                      description: size of the page
+                  last:
+                    type: string
+                    description: indicates it is last page
+                  content:
+                    type: array
+                    items:
+                      $ref:  '#/components/schemas/PageContent'
+                  pageable:
+                    $ref: '#/components/schemas/Pageable'
+                  sort:
+                    $ref: '#/components/schemas/Sort'            
+        '400':
+          description: Invalid Client ID supplied
+        '404':
+          description: Client not found
+  '/api/v1/firms/{firmId}/content/tags/{tagName}':
+     get:
+        tags:
+         - content
+        summary: fetches a specific content
+        operationId: getContentByTag
+        x-swagger-router-controller: ContentController
+        parameters:
+          - name: firmId
+            in: path
+            description: ID of wealth management firm
+            required: true
+            schema:
+              type: string
+          - name: tagName
+            in: path
+            description: Get a single content from a specific Tag (it should return first item if there are multiple tags)
+            required: true
+            example: 'TermsAndConditions'
+            schema:
+              type: string
+        responses:
+          '200':
+            description: successful operation
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ContentItem'
+          '400':
+            description: Invalid tag supplied
+  '/api/v1/firms/{firmId}/clients/{clientId}/notifications':
+    get:
+      tags:
+        - communication
+      summary: fetches notification
+      operationId: getClientNotifications
+      x-swagger-router-controller: NotificationController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: clientId
+          in: path
+          description: Client ID for which notification need to be looked up for
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          description: Zero-based page index (0..N)
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: size
+          description: The size of the page to be returned
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 50
+        - in: query
+          name: sort
+          description: Sorting criteria in the format- property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                  totalElements:
+                    type: integer
+                    description: total result size returned
+                  size:
+                    type: integer
+                    description: size of the page
+                  last:
+                    type: string
+                    description: indicates it is last page
+                  content:
+                    type: array
+                    items:
+                      $ref:  '#/components/schemas/Notification'
+                  pageable:
+                    $ref: '#/components/schemas/Pageable'
+                  sort:
+                    $ref: '#/components/schemas/Sort'            
+        '400':
+          description: Invalid Client ID supplied
+        '404':
+          description: Client not found
+  '/api/v1/firms/{firmId}/advisors/{advisorId}/notifications':
+    get:
+      tags:
+        - communication
+      summary: fetches notification
+      operationId: getAdvisorNotifications
+      x-swagger-router-controller: NotificationController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+        - name: advisorId
+          in: path
+          description: Advisor ID for which notification need to be looked up for
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: page
+          description: Zero-based page index (0..N)
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: size
+          description: The size of the page to be returned
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 50
+        - in: query
+          name: sort
+          description: Sorting criteria in the format- property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalPages:
+                    type: integer
+                  totalElements:
+                    type: integer
+                    description: total result size returned
+                  size:
+                      type: integer
+                      description: size of the page
+                  last:
+                    type: string
+                    description: indicates it is last page
+                  content:
+                    type: array
+                    items:
+                      $ref:  '#/components/schemas/Notification'
+                  pageable:
+                    $ref: '#/components/schemas/Pageable'
+                  sort:
+                    $ref: '#/components/schemas/Sort'            
+        '400':
+          description: Invalid Advisor ID supplied
+        '404':
+          description: Advisor not found
+  '/api/v1/firms/{firmId}/notification':
+    post:
+      tags:
+        - communication
+      summary: creates a new notification
+      operationId: addNotification
+      x-swagger-router-controller: NotificationController
+      parameters:
+        - name: firmId
+          in: path
+          description: ID of wealth management firm
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '405':
+          description: Invalid input
+      requestBody:
+        description: Create a new notification for client or advisor
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+components:
+  schemas:
+    Firm:
+      type: object
+      required:
+        - id
+        - firmName
+        - firmType
+      properties:
+        firmId:
+          type: string
+        firmName:
+          type: string
+          example: Fidelity
+        firmType:
+          type: string
+          example: Broker Dealer, RIA, etc.
+        foundedDate:
+          type: string
+          format: date
+        firmNumber:
+          type: string
+        firmLogo:
+          type: string
+          example: Path/URL to firm logo
+        locations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Location'
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+    Location:
+      type: object
+      properties:
+        locationType: 
+          type: string
+          description: headquarter, branch, or other
+          enum:
+           - hq
+           - branch
+           - other
+        address:
+          $ref: '#/components/schemas/PostalAddress'
+    Contact:
+      type: object
+      properties:
+        contactType: 
+          type: string
+          enum:
+            - email
+            - phone
+            - fax
+        contactDetails:
+          type: string
+          description: details of contact
+          example: 'service@contact.com'
+    PostalAddress:
+      type: object
+      description: Modeled using schema.org reference as standard - https://schema.org/PostalAddress (see here https://github.com/smart-data-models/data-models/blob/master/schema.org.yaml)
+      properties:
+          addressCountry: 
+            description: "The country. For example, USA. You can also provide the two-letter ISO 3166-1 alpha-2 country code.\n"
+            type: string
+          addressLocality: 
+            description: "The locality in which the street address is, and which is in the region. For example, Mountain View.\n"
+            type: string
+          addressRegion: 
+            description: "The region in which the locality is, and which is in the country. For example, California or another appropriate first-level Administrative division\n"
+            type: string
+          postOfficeBoxNumber: 
+            description: "The post office box number for PO box addresses.\n"
+            type: string
+          postalCode: 
+            description: "The postal code. For example, 94043.\n"
+            type: string
+          streetAddress: 
+            description: "The street address. For example, 1600 Amphitheatre Pkwy.\n"
+            type: string
+    FinancialService:
+      type: object
+      description: type of service being offered by wealth management firm such as Investment management, Retirement planning, Tax planning, Estate planning, Risk management, Financial planning, Philanthropic planning, Business succession planning
+      properties:
+        service:
+          type: string
+          description: brief name of service
+          example: Financial Planning
+        description:
+          type: string
+          description: describe the service details
+          example: involves looking at a client's entire financial picture and advising them on how to achieve their short- and long-term financial goals.
+    Specialization:
+      type: object
+      description: Market segment firm is specialized for such as Individuals & Families, Business Owners & Executives, Trusts & Estates, Endowments & Foundations, Professionals
+      properties:
+        area:
+          type: string
+          description: area of specialization
+          example: Individuals & Families, Business Owners & Executives, Trusts & Estates, Endowments & Foundations, Professionals
+    Partner:
+      type: object
+      description: Firm's partnership company or any entity
+      properties:
+        partnerId:
+          type: string
+        name:
+          type: string
+          description: partner name
+          example: Bank of America
+        service:
+          type: string
+          description: type of service provided by the partner
+          example: banking
+        description:
+          type: string
+          description: brief description about the service being offered
+        preferred:
+          type: string
+          description: Y or N (based on strategic partnership)
+          example: Y
+    Advisor:
+      type: object
+      description: Firm's advisor
+      properties:
+        advisorId:
+          type: string
+        firstName:
+          type: string
+        middleName:
+          type: string          
+        lastName:
+          type: string
+        preferredName:
+          type: string
+        gender:
+          type: string
+          description: male/female/others
+        crdNumber:
+          type: string
+          description: FINRA issued CRD Number
+        dateOfBirth:
+          type: string
+        status:
+          type: string
+          description: Active /Inactive          
+        SSN:
+          type: string
+        firmId:
+          type: integer
+          description: Firm with which Advisor is associated with
+        roleType:
+          $ref: '#/components/schemas/PartyRole'
+        position:
+          type: string
+          description: brief description about the advisor's position
+        title:
+          type: string
+          description: title (Mr./Mrs.)
+        advisorNumber:
+          type: string
+          description: Advisor No.
+        photo:
+          type: string
+          description: Photo's location
+        primaryAddress:
+          $ref: '#/components/schemas/PostalAddress'
+        secondaryAddress:
+          $ref: '#/components/schemas/PostalAddress'
+        education:
+          type: array
+          items:
+            $ref: '#/components/schemas/Education'
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+        licenses:
+          type: array
+          items:
+            $ref: '#/components/schemas/License'
+        affiliations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Affiliation'
+        socialmedia:
+          $ref: '#/components/schemas/SocialMedia'
+        experiences:
+          type: array
+          items:
+            $ref: '#/components/schemas/Experience'
+        specializations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Specialization'
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/FinancialService'
+        hobbies:
+          type: array
+          items:
+            $ref: '#/components/schemas/HobbyInterest'
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeedbackReview'
+        advisorTeam:
+          $ref: '#/components/schemas/AdvisorTeam'
+        languages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Language'
+        misellenous:
+          $ref: '#/components/schemas/Miscellenous'
+    Representative:
+      type: object
+      description: Advisor's Representative in the firm
+      properties:
+        repId:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        repCode:
+          type: string
+        clearingFirmCode:
+          type: string
+        primaryRepFlag:
+          type: string
+          description: to indicate if the REP is PRIMARY or Not
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+        startDate:
+          type: string
+          description: onboarding start date
+        endDate:
+          type: string
+          description: onboarding end date
+    Affiliation:
+      type: object
+      description:  Example - affiliated with a broker-dealer so they can offer products such as variable annuities
+      properties:
+        affiliationId:
+          type: string
+        affiliationType:
+          type: string
+        affiliationRole:
+          type: string
+        firmName:
+          type: string
+        affiliationIdentifier:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+    Education:
+      type: object
+      properties:
+        schoolCollegeName:
+          type: string
+        degree:
+          type: string
+        fieldOfStudy:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        orderOfDisplay:
+          type: integer
+          description: preferred display order, if multiple education degree
+    Experience:
+      type: object
+      description: capturing advisor's experience
+      properties:
+        designation:
+          type: string
+        firmName:
+          type: string
+        yearsOfService:
+          type: string
+        achievementLevel:
+          type: string
+        startYear:
+          type: string
+        endYear:
+          type: string
+        displayOrder:
+          type: integer
+          description: preferred order of display for experiences (1, 2...)
+    License:
+      type: object
+      description: Advisor's licenses and related information
+      properties:
+        licenseName:
+          type: string
+          description: Name of the license
+        issuingAuthority:
+          type: string
+          description: Issuing of authority
+        startDate:
+          type: string
+        endDate:
+          type: string
+        orderOfDisplay:
+          type: integer
+    SocialMedia:
+      type: object
+      properties:
+        linkedin:
+          type: string
+        facebook:
+          type: string
+        twitter:
+          type: string
+        youtube:
+          type: string
+        instagram:
+          type: string
+        tiktok:
+          type: string
+        spotify:
+          type: string
+        snapchat:
+          type: string
+        whatsapp:
+          type: string
+        discord:
+          type: string
+    FeedbackReview:
+      type: object
+      properties:
+        reviewer:
+          type: string
+        reviewSummary:
+          type: string
+        reviewDate:
+          type: string
+        advisorRating:
+          type: string
+        ratingProvider:
+          type: string
+    HobbyInterest:
+      type: object
+      properties:
+        name:
+          type: string
+        details:
+          type: string
+    AdvisorTeam:
+      type: object
+      properties:
+        teamName:
+          type: string
+        teamPhoto:
+          type: string
+          description: location of team photo
+        teamPhotoCaption:
+          type: string
+        aboutTeam:
+          type: string
+        links:
+          type: array
+          items:
+            type: string
+    Language:
+      type: object
+      properties:
+        languageName:
+          type: string
+        levelOfFluency:
+          type: string
+    Miscellenous:
+      type: object
+      properties:
+        aboutUs:
+          type: string
+        insights:
+          type: string
+        customContent:
+          type: string
+        thoughtLeadershipContent:
+          type: string
+          description: BLOB of examples of thought leadership
+        communityInvolvment:
+          type: string
+    PartyRole:
+      type: object
+      properties:
+        partyRoleId:
+          type: integer
+        roleType:
+          type: string
+          description: Advisor, Client, Organization
+    Organization:
+      type: object
+      properties:
+        orgId:
+          type: string
+          example: 'F001'
+        name:
+          type: string
+          example: Fidelity
+        orgType:
+          type: string
+          description: BD, Branch, Region, OSJ
+          example: Branch
+        startDate:
+          type: string
+          example: '01-01-1998'
+        endDate:
+          type: string
+          example: '01-01-2030'
+        parentId:
+          type: string
+          example: -1
+          description: defines the hierarchy - BD, Branch, Region, OSJ (-1 indicate top-level hierarchy)
+        level:
+          type: integer
+          description: Level in the hierarchy (1, 2, 3, 4...)
+          example: 1
+    Entitlement:
+      type: object
+      properties:
+        entitlementId:
+          type: string
+          example: 'E001' 
+        advisorId:
+          type: string
+          example: 'A001'
+        orgId:
+          type: string
+          description: Organization for which entitlement is applicable
+          example: 'ORG001'
+        roleName:
+          type: string
+          description: For Role-based Access Control
+          example: 'CanAccessPayMenu'
+    Client:
+      type: object
+      properties:
+        clientId:
+          type: string
+        title:
+          type: string
+          description: title (Mr./Mrs.)          
+        firstName:
+          type: string
+        middleName:
+          type: string
+        lastName:
+          type: string
+        preferredName:
+          type: string
+        gender:
+          type: string
+          description: male/female/others
+        dateOfBirth:
+          type: string
+        SSN:
+          type: string
+        status:
+          type: string
+          description: Active /Inactive
+        photo:
+          type: string
+          description: Photo's location
+        primaryAddress:
+          $ref: '#/components/schemas/PostalAddress'
+        secondaryAddress:
+          $ref: '#/components/schemas/PostalAddress'
+        education:
+          type: array
+          items:
+            $ref: '#/components/schemas/Education'
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+    Account:
+      type: object
+      properties:
+        accountId:
+          type: string
+          example: '0110000'
+        accountNumber:
+          type: string
+          example: 'XXXX-9881'
+        accountName:
+          type: string
+          example: 'Fixed Term Deposit'
+        lastUpdated:
+          type: string
+          example: '1584778012000'
+        accountValue:
+          type: string
+          example: 27517
+        accountType:
+          type: string
+          example: 'CD'
+        providerName:
+          type: string
+          example: 'Fidelity'
+        accountStatus:
+          type: string
+          example: 'ACTIVE'
+        accountCategory:
+          type: string
+          example: 'Bank'
+        accountLabel:
+          type: string
+          example: 'Fixed Term Deposit'
+    Holding:
+      type: object
+      properties:
+        id:
+          type: string
+        accountId:
+          type: string
+          description: id of bank account/ creditCard/ investment/ insurance/ loan account
+        holdingType:
+          type: string
+          description: type of security like stocks, mutual fund, etc.
+        description:
+          type: string
+          description: The description (name) for the holding
+          example: Amazon Inc.
+        price:
+          type: integer
+          description: the current price of the security
+        quantity:
+          type: integer
+          description: The quantity held for the holding.
+        cusipNumber:
+          type: string
+          description: The CUSIP (Committee on Uniform Securities Identification Procedures) identifies most financial instruments in the United States and Canada.
+        isin:
+          type: string
+          description: The ISIN (International Securities Identification Number) is used worldwide to identify specific securities. It is equivalent to CUSIP for international markets.
+        symbol:
+          type: string
+          description: the symbol of the security
+        value:
+          type: integer
+          description: The total market value of the security.
+        lastUpdate:
+          type: string
+          description: The last updated date or timestamp
+        attributes:
+          type: array
+          description: Additional Attributes Key/Value
+          items:
+            $ref: '#/components/schemas/ContentItem' 
+    Transaction:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        accountId:
+          type: string
+          description: id of bank account/ creditCard/ investment/ insurance/ loan account
+        type:
+          type: string
+          description: debit or credit
+          example: debit
+        description:
+          type: string
+          description: transaction description
+          example: CHECK for RENT
+        category:
+          type: string
+        amount:
+          type: integer
+        transactionDate:
+          type: string
+        attributes:
+          type: array
+          description: Additional Attributes Key/Value
+          items:
+            $ref: '#/components/schemas/ContentItem'
+    Statement:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          description: statement type (tax statement, etc.)
+        description:
+          type: string
+          description: statement details
+        accountId:
+          type: string
+          description: Account to which the statement related to.
+        clientId:
+         type: string
+        statementDate:
+          type: string
+        statementUrl:
+          type: string
+          description: URL of the statement file
+        attributes:
+          type: array
+          description: Additional Attributes Key/Value
+          items:
+            $ref: '#/components/schemas/ContentItem'
+    Prospect:
+      type: object
+      properties:
+        prospectId:
+          type: string
+        title:
+          type: string
+          description: title (Mr./Mrs.)          
+        firstName:
+          type: string
+        middleName:
+          type: string
+        lastName:
+          type: string
+        preferredName:
+          type: string
+        gender:
+          type: string
+          description: male/female/others
+        dateOfBirth:
+          type: string
+        SSN:
+          type: string
+        status:
+          type: string
+          description: Active /Inactive
+        photo:
+          type: string
+          description: Photo's location
+        primaryAddress:
+          $ref: '#/components/schemas/PostalAddress'
+        secondaryAddress:
+          $ref: '#/components/schemas/PostalAddress'
+        education:
+          type: array
+          items:
+            $ref: '#/components/schemas/Education'
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+    InvestmentPortfolio:
+      type: object
+      properties:
+        totalNetWorth:
+          type: string
+        lastUpdated:
+          type: string
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Account' 
+    PageContent:
+      type: object
+      properties:
+        header:
+          type: string
+          description: Page header content
+          example: 'Dashboard Heading'
+        footer:
+          type: string
+          description: Page footer content
+          example: 'Dashboard Footer Links'
+        menuContent:
+          type: array
+          description: Page Menu (Side or Top)
+          items:
+            $ref: '#/components/schemas/ContentItem' 
+        pageContent:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentItem' 
+    ContentItem:
+      type: object
+      properties:
+        name:
+          type: string
+          description: item name
+          example: "Label for Investment Menu"
+        value:
+          type: string
+          description: item value
+          example: "Value for Investment Menu"
+    Notification:
+      type: object
+      properties:
+        notificationId:
+          type: string
+        notificationType:
+          type: string
+          enum:
+            - email
+            - sms
+            - app
+        notificationName:
+          type: string
+          example: 'New Wealth Plan Initiated'
+        advisorId:
+          type: string
+          description: target advisor to send notification (either client or advisor id needs to be provided)
+        clientId:
+          type: string
+          description: target client to send notification
+        message:
+          type: string
+          description: notification message
+        email:
+          type: string
+          description: target email (if not specified, primary email id will be used for advisor or client)
+        mobile:
+          type: string
+          description: mobile number (if not specified, primary contact will be used for advisor or client)
+    LeadGenFirm:
+      type: object
+      properties:
+        name:
+          type: string
+          example: ABC Wealth Lead Gen Firm
+        type:
+          type: string
+          example: Lead Gen Firm Type
+        firmNumber:
+          type: integer
+          format: int32
+          example: 7009
+        logo:
+          type: string
+          example: imagepath(\\path\\image)
+        website:
+          type: string
+          example: www.abc.com
+        targetAudience:
+          type: string
+          description: Target Audience
+          example: Professionals
+          enum:
+            - Individuals & families
+            - Business owners and executives
+            - Trust & estates
+            - Endowments & foundations
+            - Professionals        
+        matchingCriteria:
+          type: string
+          description: Matching Criteria
+          example: custom
+          enum:
+            - location
+            - specialization
+            - custom
+        engagement:
+            $ref: '#/components/schemas/Engagement'
+        compliance:
+          type: string
+          description: Compliance
+          example: General Data Protection Regulation (GDPR)
+          enum:
+            - California Consumer Privacy Act (CCPA)
+            - Sarbanes-Oxley Act of 2002 (SOX)
+            - PCI Data Security Standard (PCI DSS)
+            - General Data Protection Regulation (GDPR)
+        legalAgreement:
+            $ref: '#/components/schemas/LegalAgreement'  
+        primaryContact:
+            $ref: '#/components/schemas/Contact'  
+        secondaryContact:
+            $ref: '#/components/schemas/Contact' 
+        techSupportContact:
+            $ref: '#/components/schemas/Contact'             
+        complete:
+          type: boolean
+      xml:
+        name: leadGenFirm
+    Engagement:
+      type: object
+      properties:
+        status:
+          type: string
+          example: approved
+        setupDate:
+          type: string
+          format: date-time
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time          
+      xml:
+        name: engagement
+    LegalAgreement:
+      type: object
+      properties:
+        path:
+          type: string
+          example: uploadPath(\\path\\agreementv1.0)
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time            
+      xml:
+        name: legalAgreement
+    Pageable:
+      type: object
+      properties:
+        offset:
+          type: integer
+        pageNumber:
+          type: integer
+          description: page number you are currently viewing
+        pageSize:
+          type: integer
+        paged:
+          type: boolean
+        unpaged:
+          type: boolean
+    Sort:
+      type: object
+      additionalProperties: false
+      properties:
+        empty:
+          type: boolean
+        unsorted:
+          type: boolean
+        sorted:
+          type: boolean
+    Metric:
+      type: object
+      properties:
+        id:
+          type: string
+          description: identifier of the metric
+          example: M001
+        name: 
+          type: string
+          description: name of the metric
+          example: AUM
+        value:
+          type: string
+          example: 100000
+    Barometer:
+      type: object
+      properties:
+        MetricId:
+          type: string
+          description: identifier of the metric
+          example: M001
+        MetricName:
+          type: string
+          example: AUM
+        OneYear:
+          $ref: '#/components/schemas/BarometerParam'
+        SixMonths:
+          $ref: '#/components/schemas/BarometerParam'
+        ThreeMonths:
+          $ref: '#/components/schemas/BarometerParam'
+        OneMonth:
+          $ref: '#/components/schemas/BarometerParam'
+        OneWeek:
+          $ref: '#/components/schemas/BarometerParam'
+        OneDay:
+          $ref: '#/components/schemas/BarometerParam'        
+    BarometerParam:
+      type: object
+      properties:
+        PercentChange:
+          type: string
+          example: 1.1
+        Value:
+          type: string
+          description: Absolute value (Optional)
+          example: 100000
+        Notes:
+          type: string
+          description: Additional information (if needed)
+          example: Provided from vendor x
